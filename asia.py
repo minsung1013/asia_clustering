@@ -255,11 +255,13 @@ if check_password():
     col_fig_1, col_fig_2, col_fig_3 = st.columns([3.5, 3, 3])
     with col_fig_1:
         with st.form(key='my_form3'):
-            st.write(
-                df_data.groupby(['kmeans2', 'Sub-Category'])['w'].aggregate(
-                    ['count', 'mean', 'min', 'max']).sort_values(
+            if len(df_data) == 0:
+                pass
+            else:
+                st.write(df_data.groupby(
+                    ['kmeans2', 'Sub-Category'])['w'].aggregate(['count', 'mean', 'min', 'max']).sort_values(
                     'count', ascending=False))
-            selection_kmean = st.selectbox('cluster', all + list(df_data['kmeans'].value_counts().index))
+                selection_kmean = st.selectbox('cluster', all + list(df_data['kmeans'].value_counts().index))
 
             submit_button = st.form_submit_button(label='Submit')
 
