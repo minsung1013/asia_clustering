@@ -251,6 +251,7 @@ if check_password():
         kmeans_list = list(df_data['kmeans'].value_counts().index)
 
     with st.form(key='my_form3'):
+        st.subheader('cluster selection')
         st.write(df_cluster)
         selection_kmean = st.selectbox('cluster', all + kmeans_list)
         submit_button = st.form_submit_button(label='Submit')
