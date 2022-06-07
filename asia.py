@@ -6,8 +6,6 @@ import io
 import msoffcrypto
 from PIL import Image
 
-st.set_page_config(layout="wide")
-
 def check_password():
     """Returns `True` if the user had the correct password."""
 
@@ -38,8 +36,8 @@ def check_password():
 
 if check_password():
     st.set_option('deprecation.showPyplotGlobalUse', False)
-    st.title('Asia Market Clustering Analysis for PP')
-    st.write('created by Mason Choi')
+    st.title('Asia Market Clustering Analysis for Product Protection')
+    st.write('created by Mason Choi (last updated 2022-06-07)')
     passwd = st.secrets['passwd']
 
 
@@ -73,17 +71,14 @@ if check_password():
 
     with st.form(key='my_form1'):
         st.subheader('Market selection')
-        col1_1, col1_2, col1_3, col1_4, col1_5 = st.columns([2, 1, 2, 1, 1])
+        col1_1, col1_2 = st.columns([3, 1])
         with col1_1:
             market = st.selectbox('Market', all + list(df_data['Market'].unique()))
+            manufacturer = st.selectbox('Manufacturer', all + list(df_data['Manufacturer'].unique()))
         with col1_2:
             market_max = st.number_input('market show', min_value=1, max_value=20, value=15)
-        with col1_3:
-            manufacturer = st.selectbox('Manufacturer', all + list(df_data['Manufacturer'].unique()))
-        with col1_4:
             manufacturer_max = st.number_input('Manufacturer show', min_value=1, max_value=30, value=15)
-        with col1_5:
-            year = st.multiselect('year', all + list(df_data['Year'].unique()))
+        year = st.multiselect('year', all + list(df_data['Year'].unique()))
 
         col2_1, col2_2, col2_3, col2_4 = st.columns(4)
         with col2_1:
@@ -238,17 +233,11 @@ if check_password():
         st.subheader('Trend')
         columns = data2.sum(axis=0).sort_values(ascending=False).index[1:max]
         df_group = data2.groupby('Year')[columns].sum().T
-
-        col_p3_1, col_p3_2 = st.columns(2)
-        with col_p3_1:
-            st.table(df_group)
-        with col_p3_2:
-            df_group = df_group / data2.groupby('Year').size() * 100
-            df_group.T.plot(figsize=(7, 5))
-            plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-            st.pyplot()
-
-
+        st.table(df_group)
+        df_group = df_group / data2.groupby('Year').size() * 100
+        df_group.T.plot(figsize=(7, 5))
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        st.pyplot()
     # ===============================================================================
 
     # clustering map 1 and 2
@@ -261,26 +250,24 @@ if check_password():
                     'count', ascending=False)
         kmeans_list = list(df_data['kmeans'].value_counts().index)
 
-    col_fig_1, col_fig_2, col_fig_3 = st.columns([3.5, 3, 3])
+    with st.form(key='my_form3'):
+        st.write(df_cluster)
+        selection_kmean = st.selectbox('cluster', all + kmeans_list)
+        submit_button = st.form_submit_button(label='Submit')
+
+    if selection_kmean == 'all':
+        df_tsne_old = df_tsne.copy()
+    else:
+        mask_kmean = df_data['kmeans'] == selection_kmean
+        df_data = df_data[mask_kmean]
+        df_preservative = df_preservative[mask_kmean]
+        df_antioxidant = df_antioxidant[mask_kmean]
+        df_chelating = df_chelating[mask_kmean]
+        df_tsne_old = df_tsne.copy()
+        df_tsne = df_tsne[mask_kmean]
+
+    col_fig_1, col_fig_2 = st.columns(2)
     with col_fig_1:
-        with st.form(key='my_form3'):
-            st.write(df_cluster)
-            selection_kmean = st.selectbox('cluster', all + kmeans_list)
-
-            submit_button = st.form_submit_button(label='Submit')
-
-            if selection_kmean == 'all':
-                df_tsne_old = df_tsne.copy()
-            else:
-                mask_kmean = df_data['kmeans'] == selection_kmean
-                df_data = df_data[mask_kmean]
-                df_preservative = df_preservative[mask_kmean]
-                df_antioxidant = df_antioxidant[mask_kmean]
-                df_chelating = df_chelating[mask_kmean]
-                df_tsne_old = df_tsne.copy()
-                df_tsne = df_tsne[mask_kmean]
-
-    with col_fig_2:
         img = Image.open("./data/clustering_gray.png")
         fig, ax = plt.subplots(figsize=(10, 10))
         im = ax.imshow(img, extent=[-61.5, 61.5, -61.5, 61.5])
@@ -296,7 +283,7 @@ if check_password():
         plt.yticks([-60, -50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60])
         st.pyplot(fig)
 
-    with col_fig_3:
+    with col_fig_2:
         img = Image.open("./data/clustering.png")
         fig, ax = plt.subplots(figsize=(10, 10))
         im = ax.imshow(img, extent=[-61.5, 61.5, -61.5, 61.5])
@@ -315,111 +302,93 @@ if check_password():
     st.subheader('data selection summary')
     a, b, c, d = st.columns(4)
     with a:
-        st.write('num of products: ', len(df_data))
-    with b:
         st.write('Market :', market)
-    with c:
+    with b:
         st.write('Manufacturer :', manufacturer)
+    with c:
+        st.write('no. of products: ', len(df_data))
     with d:
+        st.write('selected cluster : ', selection_kmean)
+
+    e, f = st.columns(2)
+    with e:
         if option_cat == 'Category':
             st.write('Option_show : ', option_cat, '>', category)
         elif option_cat == 'Class':
             st.write('Option_show : ', option_cat, '>', class_)
         else:
             st.write('Option_show : ', option_cat, '>', sub_category)
-
-    e, f = st.columns(2)
-    with e:
-        st.write('ingredient selection : ', option_product, ' > ', selection_ingredient)
     with f:
-        st.write('slected cluster : ', selection_kmean)
+        st.write('ingredient selection : ', option_product, ' > ', selection_ingredient)
 
     if len(df_data) == 0:
         st.header('There is no product 😕, please try it agian')
 
+
     st.subheader('Overall')
     with st.expander('see more'):
-        col_o1, col_o2, col_o3 = st.columns(3)
+        col_o1, col_o2 = st.columns(2)
         with col_o1:
             st.pyplot(plot_1(df_data, 'Market', size=(5, 4), max=int(market_max)))
         with col_o2:
             st.pyplot(plot_1(df_data, 'Category', size=(5, 4)))
-        with col_o3:
-            st.pyplot(plot_1(df_data, 'Sub-Category', size=(5, 4)))
 
-        col_o1, col_o2, col_o3 = st.columns(3)
+        col_o1, col_o2 = st.columns(2)
         with col_o1:
-            st.pyplot(plot_1(df_data, 'Brand', size=(5, 4), max=int(manufacturer_max)))
+            st.pyplot(plot_1(df_data, 'Sub-Category', size=(5, 4)))
         with col_o2:
+            st.pyplot(plot_1(df_data, 'Brand', size=(5, 4), max=int(manufacturer_max)))
+
+        col_o1, col_o2 = st.columns(2)
+        with col_o1:
             st.pyplot(plot_1(df_data, 'Ultimate Company', size=(5, 4), max=int(manufacturer_max)))
-        with col_o3:
+        with col_o2:
             st.pyplot(plot_1(df_data, 'Manufacturer', size=(5, 4), max=int(manufacturer_max)))
 
     st.subheader('Preservative')
     with st.expander('see more'):
-        col_p1, col_p2 = st.columns(2)
-        with col_p1:
-            st.pyplot(plot_2(df_preservative, max=10))
-        with col_p2:
-            st.pyplot(plot_1(df_data, 'p_system', max=10))
+        st.pyplot(plot_2(df_preservative, max=10))
         plot_3(df_preservative)
+        st.pyplot(plot_1(df_data, 'p_system', max=10))
 
     st.subheader('Antioxidant')
     with st.expander('see more'):
-        col_a1, col_a2 = st.columns(2)
-        with col_a1:
-            st.pyplot(plot_2(df_antioxidant, max=10))
-        with col_a2:
-            st.pyplot(plot_1(df_data, 'a_system', max=10))
+        st.pyplot(plot_2(df_antioxidant, max=10))
         plot_3(df_antioxidant)
+        st.pyplot(plot_1(df_data, 'a_system', max=10))
 
     st.subheader('Chelating_Agent')
     with st.expander('see more'):
-        col_c1, col_c2 = st.columns(2)
-        with col_c1:
-            st.pyplot(plot_2(df_chelating, max=10))
-        with col_c2:
-            st.pyplot(plot_1(df_data, 'c_system', max=10))
+        st.pyplot(plot_2(df_chelating, max=10))
         plot_3(df_chelating)
+        st.pyplot(plot_1(df_data, 'c_system', max=10))
 
-    col_1, col_2 = st.columns(2)
-    with col_1:
-        st.subheader('Product Report')
-        with st.expander('see more'):
-            if len(df_data) > 150:
-                st.write('please reduce the number of product below 100')
-            else:
-                for i in range(len(df_data)):
-                    st.write(i)
-                    st.write(df_data.iloc[i, 2], ' ', df_data.iloc[i, 1], ' [', df_data.iloc[i, 4], ' / ',
-                             df_data.iloc[i, 5],
-                             '] ', df_data.iloc[i, 6])
-                    st.write(df_data.iloc[i, 7], ' > ', df_data.iloc[i, 10], ' > ', df_data.iloc[i, 8])
-                    st.write('Mintel Link :', df_data.iloc[i, 9])
-                    st.write('p-system: ', df_data.iloc[i, 12])
-                    st.write('a-system: ', df_data.iloc[i, 13])
-                    st.write('e-system: ', df_data.iloc[i, 14])
-                    st.write('c-system: ', df_data.iloc[i, 15])
-                    st.write("")
-    with col_2:
-        st.subheader('Customer Report')
-        sub_category = df_data['Class'].unique()
-        with st.expander('see more'):
-            if manufacturer == 'all':
-                st.write('please select a manufacturer')
-            else:
-                st.subheader(manufacturer)
-                for sub in sub_category:
-                    st.text(sub)
-                    st.text(df_data[df_data['Class'] == sub]['p_system'].value_counts()[:5])
-                    st.write()
+    st.subheader('Customer Report')
+    sub_category = df_data['Class'].unique()
+    with st.expander('see more'):
+        if manufacturer == 'all':
+            st.write('please select a manufacturer')
+        else:
+            st.subheader(manufacturer)
+            for sub in sub_category:
+                st.text(sub)
+                st.text(df_data[df_data['Class'] == sub]['p_system'].value_counts()[:5])
+                st.write()
 
-
-
-
-
-
-
-
-
-
+    st.subheader('Product Report')
+    with st.expander('see more'):
+        if len(df_data) > 150:
+            st.write('please reduce the number of product below 150')
+        else:
+            for i in range(len(df_data)):
+                st.write(i)
+                st.write(df_data.iloc[i, 2], ' ', df_data.iloc[i, 1], ' [', df_data.iloc[i, 4], ' / ',
+                         df_data.iloc[i, 5],
+                         '] ', df_data.iloc[i, 6])
+                st.write(df_data.iloc[i, 7], ' > ', df_data.iloc[i, 10], ' > ', df_data.iloc[i, 8])
+                st.write('Mintel Link :', df_data.iloc[i, 9])
+                st.write('p-system: ', df_data.iloc[i, 12])
+                st.write('a-system: ', df_data.iloc[i, 13])
+                st.write('e-system: ', df_data.iloc[i, 14])
+                st.write('c-system: ', df_data.iloc[i, 15])
+                st.write("")
