@@ -252,16 +252,20 @@ if check_password():
     # ===============================================================================
 
     # clustering map 1 and 2
+    if len(df_data) == 0:
+        df_cluster = 'no product'
+        kmeans_list = []
+    else:
+        df_cluster = df_data.groupby(['kmeans2', 'Sub-Category'])['w'].aggregate(
+                    ['count', 'mean', 'min', 'max']).sort_values(
+                    'count', ascending=False)
+        kmeans_list = list(df_data['kmeans'].value_counts().index)
+
     col_fig_1, col_fig_2, col_fig_3 = st.columns([3.5, 3, 3])
     with col_fig_1:
         with st.form(key='my_form3'):
-            if len(df_data) == 0:
-                pass
-            else:
-                st.write(df_data.groupby(
-                    ['kmeans2', 'Sub-Category'])['w'].aggregate(['count', 'mean', 'min', 'max']).sort_values(
-                    'count', ascending=False))
-                selection_kmean = st.selectbox('cluster', all + list(df_data['kmeans'].value_counts().index))
+            st.write(df_cluster)
+            selection_kmean = st.selectbox('cluster', all + kmeans_list)
 
             submit_button = st.form_submit_button(label='Submit')
 
@@ -280,7 +284,7 @@ if check_password():
         img = Image.open("./data/clustering_gray.png")
         fig, ax = plt.subplots(figsize=(10, 10))
         im = ax.imshow(img, extent=[-61.5, 61.5, -61.5, 61.5])
-        if len(df_data) == 97958:
+        if len(df_data) == 97958 or len(df_data) == 0:
             pass
         else:
             ax.scatter(df_tsne_old.iloc[:, 0], df_tsne_old.iloc[:, 1], c='red', marker='v', s=25, alpha=1)
@@ -296,7 +300,7 @@ if check_password():
         img = Image.open("./data/clustering.png")
         fig, ax = plt.subplots(figsize=(10, 10))
         im = ax.imshow(img, extent=[-61.5, 61.5, -61.5, 61.5])
-        if len(df_data) == 97958:
+        if len(df_data) == 97958 or len(df_data) == 0:
             pass
         else:
             ax.scatter(df_tsne_old.iloc[:, 0], df_tsne_old.iloc[:, 1], c='red', marker='v', s=25, alpha=1)
@@ -329,6 +333,9 @@ if check_password():
         st.write('ingredient selection : ', option_product, ' > ', selection_ingredient)
     with f:
         st.write('slected cluster : ', selection_kmean)
+
+    if len(df_data) == 0:
+        st.header('There is no product 😕, please try it agian')
 
     st.subheader('Overall')
     with st.expander('see more'):
