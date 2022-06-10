@@ -80,14 +80,16 @@ if check_password():
             manufacturer_max = st.number_input('Manufacturer show', min_value=1, max_value=30, value=15)
         year = st.multiselect('year', all + list(df_data['Year'].unique()))
 
-        col2_1, col2_2, col2_3, col2_4 = st.columns(4)
+        col2_1, col2_2, col2_3 = st.columns(3)
         with col2_1:
             option_cat = st.radio('show by', ['Category', 'Class', 'Sub-Category'])
         with col2_2:
             category = st.selectbox('category', all + list(df_data['Category'].unique()))
         with col2_3:
             class_ = st.selectbox('class', all + list(df_data['Class'].unique()))
-        with col2_4:
+
+        col2_1, col2_2 = st.columns([1,2])
+        with col2_2:
             sub_category = st.selectbox('sub-category', all + list(df_data['Sub-Category'].unique()))
 
         submit_button = st.form_submit_button(label='Submit')
@@ -233,7 +235,11 @@ if check_password():
         st.subheader('Trend')
         columns = data2.sum(axis=0).sort_values(ascending=False).index[1:max]
         df_group = data2.groupby('Year')[columns].sum().T
-        st.table(df_group)
+        c1, c2 = st.columns([1,3])
+        with c1:
+            st.table(data2['Year'].value_counts().sort_index())
+        with c2:
+            st.table(df_group)
         df_group = df_group / data2.groupby('Year').size() * 100
         df_group.T.plot(figsize=(7, 5))
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
