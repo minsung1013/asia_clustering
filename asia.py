@@ -384,10 +384,10 @@ if check_password():
             for i in range(len(df_data)):
                 st.write(i)
                 st.write(df_data.iloc[i, 2], ' ', df_data.iloc[i, 1], ' [', df_data.iloc[i, 4], ' / ',
-                         df_data.iloc[i, 5],
-                         '] ', df_data.iloc[i, 6])
+                         df_data.iloc[i, 5], '] ', df_data.iloc[i, 11])
                 st.write(df_data.iloc[i, 7], ' > ', df_data.iloc[i, 10], ' > ', df_data.iloc[i, 8])
                 st.write('Mintel Link :', df_data.iloc[i, 9])
+                st.write('Ingredients :', df_data.iloc[i, -1])
                 st.write('p-system: ', df_data.iloc[i, 12])
                 st.write('a-system: ', df_data.iloc[i, 13])
                 st.write('e-system: ', df_data.iloc[i, 14])
