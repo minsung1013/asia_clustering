@@ -256,6 +256,7 @@ if check_password():
         df_cluster.reset_index(level=['kmeans', 'x', 'y', 'Sub-Category'], inplace=True)
         kmeans_list = list(df_data['kmeans'].value_counts().index)
 
+
     with st.form(key='my_form3'):
         st.subheader('cluster selection')
         st.write(df_cluster)
