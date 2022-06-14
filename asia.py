@@ -253,20 +253,25 @@ if check_password():
     else:
         df_cluster = df_data.groupby(['kmeans','x','y','Sub-Category'])['w'].aggregate(
                     ['count', 'mean']).sort_values('count', ascending=False)
-        df_cluster.reset_index(level=['kmeans', 'x', 'y', 'Sub-Category'], inplace=True)
+        df_cluster.reset_index(level=['x', 'y', 'Sub-Category'], inplace=True)
         kmeans_list = list(df_data['kmeans'].value_counts().index)
 
 
     with st.form(key='my_form3'):
         st.subheader('cluster selection')
         st.write(df_cluster)
-        selection_kmean = st.selectbox('cluster', all + kmeans_list)
+        selection_kmean = st.multiselect('cluster', all + kmeans_list)
         submit_button = st.form_submit_button(label='Submit')
 
-    if selection_kmean == 'all':
+    if 'all' in selection_kmean or len(selection_kmean) == 0:
         df_tsne_old = df_tsne.copy()
     else:
-        mask_kmean = df_data['kmeans'] == selection_kmean
+        mask_kmean = [False] * len(df_data)
+        for k in selection_kmean:
+            mask_kmean = (mask_kmean) | (df_data['kmeans'] == k)
+
+        # mask_kmean = df_data['kmeans'] == selection_kmean
+
         df_data = df_data[mask_kmean]
         df_preservative = df_preservative[mask_kmean]
         df_antioxidant = df_antioxidant[mask_kmean]
@@ -391,7 +396,7 @@ if check_password():
             for i in range(len(df_data)):
                 st.write(i)
                 st.write(df_data.iloc[i, 2], ' ', df_data.iloc[i, 1], ' [', df_data.iloc[i, 4], ' / ',
-                         df_data.iloc[i, 5], '] ', df_data.iloc[i, 12])
+                         df_data.iloc[i, 5], '] ', df_data.iloc[i, 12], df_data.iloc[i]['Market'])
                 st.write(df_data.iloc[i, 7], ' > ', df_data.iloc[i, 11], ' > ', df_data.iloc[i, 8])
                 st.write('Mintel Link :', df_data.iloc[i, 9])
                 st.write('Ingredients :', df_data.iloc[i, 10])
